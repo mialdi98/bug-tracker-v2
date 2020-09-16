@@ -1,0 +1,31 @@
+name = Link
+description = Defines simple link field types.
+core = 7.x
+package = Fields
+
+; Migrate integration.
+files[] = link.migrate.inc
+
+; Views integration.
+files[] = views/link_views_handler_argument_target.inc
+files[] = views/link_views_handler_filter_protocol.inc
+
+; Tests.
+; Most tests extend from this class.
+files[] = tests/LinkBaseTestClass.test
+
+; All of the actual tests.
+files[] = tests/LinkConvertInternalPathsTest.test
+files[] = tests/LinkEntityTokenTest.test
+files[] = tests/LinkFieldAttributesTest.test
+files[] = tests/LinkFieldCrudTest.test
+files[] = tests/LinkFieldValidateTest.test
+files[] = tests/LinkPathPrefixesTest.test
+files[] = tests/LinkTokenTest.test
+files[] = tests/LinkValidationApiTest.test
+
+; Information added by Drupal.org packaging script on 2020-06-07
+version = "7.x-1.7+7-dev"
+core = "7.x"
+project = "link"
+datestamp = "1591543297"
