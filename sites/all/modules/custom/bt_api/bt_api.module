@@ -1,0 +1,270 @@
+<?php
+
+/**
+ * @file
+ * Maintains bt_api.
+ */
+
+require_once __DIR__ . '/includes/reg.inc';
+require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/project.inc';
+require_once __DIR__ . '/includes/task.inc';
+
+define('BT_API', 'bt_api');
+
+/**
+ * Implements hook_menu().
+ */
+function bt_api_menu() {
+  $items = [];
+  // REG.
+  $items['reg'] = [
+    'page callback' => 'reg_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'reg.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  // AUTH.
+  $items['auth_login'] = [
+    'page callback' => 'auth_login_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'auth.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['auth_logout'] = [
+    'page callback' => 'auth_logout_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'auth.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['auth_is_logged_in'] = [
+    'page callback' => 'auth_is_logged_in_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'auth.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  // INFO.
+  $items['user_roles_list'] = [
+    'page callback' => 'bt_api_user_roles_list_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  ];
+  $items['bt_api_user_get'] = [
+    'page callback' => 'bt_api_user_get_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  ];
+  // PROJECT.
+  $items['project_add'] = [
+    'page callback' => 'project_add_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'project.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['project_edit'] = [
+    'page callback' => 'project_edit_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'project.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['project_delete'] = [
+    'page callback' => 'project_delete_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'project.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['project_get'] = [
+    'page callback' => 'project_get_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'project.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['project_get_all'] = [
+    'page callback' => 'project_get_all_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'project.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  // TASK.
+  $items['task_add'] = [
+    'page callback' => 'task_add_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'task.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['task_edit'] = [
+    'page callback' => 'task_edit_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'task.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['task_delete'] = [
+    'page callback' => 'task_delete_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'task.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['task_get'] = [
+    'page callback' => 'task_get_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'task.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+  $items['task_get_all'] = [
+    'page callback' => 'task_get_all_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'task.inc',
+    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
+  ];
+
+  return $items;
+}
+
+/**
+ * Respond answer for api.
+ */
+function bt_api_response($code, $where = BT_API) {
+  watchdog($where, "repsonse with code {$code}", NULL);
+  http_response_code($code);
+  header("Content-Type: application/JSON");
+  header("Access-Control-Allow-Origin: *");
+  header("Access-Control-Allow-Methods: GET, POST");
+  header('Access-Control-Allow-Credentials: true');
+  exit();
+}
+
+/**
+ * Headers for api.
+ */
+function bt_api_headers() {
+  header("Content-Type: application/JSON");
+  header("Access-Control-Allow-Origin: *");
+  header("Access-Control-Allow-Methods: GET, POST");
+  header('Access-Control-Allow-Credentials: true');
+}
+
+/**
+ * Get needed data from request.
+ */
+function bt_api_get_data($needed_keys, $where = BT_API) {
+  $needed_params = [];
+  $params = json_decode(file_get_contents("php://input"), TRUE);
+  if ($params === NULL) {
+    $params = !empty($_POST) ? (array) $_POST : (array) $_GET;
+  }
+  foreach ($needed_keys as $key => $value) {
+    $needed_params[$key] = isset($params[$key]) ? $params[$key] : bt_api_response(406, $where);
+  }
+
+  return $needed_params;
+}
+
+/**
+ * Get roles available for user choice.
+ */
+function bt_api_get_roles() {
+  $roles = user_roles();
+  // Remove not user settable roles.
+  unset($roles[DRUPAL_ANONYMOUS_RID]);
+  unset($roles[DRUPAL_AUTHENTICATED_RID]);
+  unset($roles[BT_MASTER_ADMINISTRATOR_RID]);
+
+  return $roles;
+}
+
+/**
+ * Get roles available for user choice.
+ */
+function bt_api_user_roles_list_callback() {
+  $roles = bt_api_get_roles();
+  $user_roles_list = json_encode(array_keys(array_flip($roles)));
+
+  die($user_roles_list);
+}
+
+/**
+ * Get user for.
+ */
+function bt_api_user($uid) {
+  $user = user_load($uid);
+  if (!empty($user)) {
+    $fields['id'] = $user->uid;
+    $fields['username'] = $user->name;
+    // Roles.
+    $user_roles_name = array_flip(bt_api_get_roles());
+    foreach ($user->roles as $role) {
+      $fields['role'] = isset($user_roles_name[$role]) ? $role : NULL;
+      // $fields['role'][] = $role;
+    }
+    // Well formed array for api.
+    return $fields;
+  }
+  return [];
+}
+
+/**
+ * Get user.
+ */
+function bt_api_user_get_callback() {
+  // // Check if user is logged in.
+  // module_load_include('pages.inc', 'user');
+  // if (user_is_logged_in()) {
+  //   bt_api_response(200, BT_API);
+  // }
+  // Get user username.
+  $values = [
+    'username' => NULL,
+  ];
+  $params = bt_api_get_data($values, BT_API);
+  $values['username'] = check_plain($params['username']) ?? bt_api_response(406, BT_API);
+
+  $user = user_load_by_name($values['username']);
+  bt_api_user_format($user);
+
+  bt_api_response(406, BT_API);
+}
+
+/**
+ * Get needed format of user info.
+ */
+function bt_api_user_format($user) {
+  if (!empty($user)) {
+    $fields['id'] = $user->uid;
+    $fields['username'] = $user->name;
+    // Roles.
+    $user_roles_name = array_flip(bt_api_get_roles());
+    foreach ($user->roles as $role) {
+      $fields['role'] = isset($user_roles_name[$role]) ? $role : NULL;
+      // $fields['role'][] = $role;
+    }
+    // Well formed array for api.
+    die(json_encode($fields));
+  }
+}
+
+/**
+ * Get id of user.
+ */
+function bt_api_user_get() {
+  // Get user id.
+  $values = [
+    'uid' => NULL,
+  ];
+  $params = bt_api_get_data($values, BT_API);
+  $values['uid'] = check_plain($params['uid']) ?? bt_api_response(406, BT_API);
+  return $values['uid'];
+}
