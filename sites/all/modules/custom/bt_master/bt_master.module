@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * @file
+ * Maintains bt_master.
+ */
+
+define('BT_MASTER_ADMINISTRATOR_RID', 3);
+
+/**
+ * Implements hook_permission().
+ */
+function bt_master_permission() {
+  // Project permissions.
+  $permissions['create project']['title'] = t('Create project');
+  $permissions['edit project']['title'] = t('Edit project');
+  $permissions['delete project']['title'] = t('Delete project');
+  $permissions['add member to project']['title'] = t('Add member to project');
+  $permissions['delete member from project']['title'] = t('Delete member from project');
+  // Task permissions.
+  $permissions['create task']['title'] = t('Create task');
+  $permissions['edit task']['title'] = t('Edit task');
+  $permissions['delete task']['title'] = t('Delete task');
+  // Task status permissions.
+  $permissions['status qa task']['title'] = t('Status for qa task');
+  $permissions['status assessor task']['title'] = t('Status for assessor task');
+  $permissions['status developer task']['title'] = t('Status for developer task');
+
+  return $permissions;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function bt_master_menu() {
+  $items = [];
+  $items['index'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+  $items['project'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+  $items['projects'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+  $items['bug'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+  $items['learn-more'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+  $items['registration'] = [
+    'page callback' => 'angular_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'angular.inc',
+    'file path' => drupal_get_path('module', 'bt_master') . '/includes',
+  ];
+
+  return $items;
+}
