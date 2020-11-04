@@ -32,6 +32,7 @@ function project_add_callback() {
   $project['id'] = $node->nid;
   $project['assignet_to'] = bt_api_user($project['assignet_to']);
   $project['members'] = bt_api_user(reset($project['members']));
+  bt_api_headers();
   die(json_encode($project));
   bt_api_response(201, BT_API_PROJECT);
 }
@@ -53,13 +54,12 @@ function project_edit_callback() {
   $assignet_to_id = user_load_by_name($values['assignet_to'])->uid ?? bt_api_response(406, BT_API_PROJECT);
   $node->field_assignet_to[LANGUAGE_NONE][0]['target_id'] = $assignet_to_id;
 
-  $values['members'] = json_decode($values['members'], TRUE);
   foreach ($values['members'] as $key => $member_username) {
     $member_id = user_load_by_name($member_username)->uid ?? bt_api_response(406, BT_API_PROJECT);
     $node->field_members[LANGUAGE_NONE][$key]['target_id'] = $member_id;
   }
   node_save($node);
-
+  bt_api_headers();
   die(json_encode(['status' => 'Success']));
   bt_api_response(200, BT_API_PROJECT);
 }
@@ -121,7 +121,7 @@ function project_delete_callback() {
   $user = user_load($values['uid']);
   project_is_member_by_project_id($values['id']);
   node_delete($values['id']);
-
+  bt_api_headers();
   die(json_encode(['status' => 'Success']));
   bt_api_response(200, BT_API_PROJECT);
 }
@@ -149,6 +149,7 @@ function project_get_callback() {
     foreach ($members_ids as $value) {
       $project['members'][] = bt_api_user($value);
     }
+    bt_api_headers();
     die(json_encode($project));
   }
   bt_api_response(406, BT_API_PROJECT);

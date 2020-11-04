@@ -140,10 +140,7 @@ function bt_api_menu() {
 function bt_api_response($code, $where = BT_API) {
   watchdog($where, "repsonse with code {$code}", NULL);
   http_response_code($code);
-  header("Content-Type: application/JSON");
-  header("Access-Control-Allow-Origin: *");
-  header("Access-Control-Allow-Methods: GET, POST");
-  header('Access-Control-Allow-Credentials: true');
+  bt_api_headers();
   exit();
 }
 
@@ -153,7 +150,8 @@ function bt_api_response($code, $where = BT_API) {
 function bt_api_headers() {
   header("Content-Type: application/JSON");
   header("Access-Control-Allow-Origin: *");
-  header("Access-Control-Allow-Methods: GET, POST");
+  header('Access-Control-Allow-Methods: POST, GET, OPTIONS, HEAD');
+  header('Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Content-Type, Accept');
   header('Access-Control-Allow-Credentials: true');
 }
 

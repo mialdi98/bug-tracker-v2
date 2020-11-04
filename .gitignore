@@ -22,11 +22,13 @@
 *.log
 *.sql
 
-# OS generated files #
+# OS generated files & IDE #
 ######################
 .DS_Store*
 ehthumbs.db
 Icon
+.idea/*
+.vscode/*
 
 Thumbs.db
 ._*

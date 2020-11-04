@@ -36,6 +36,7 @@ function task_add_callback() {
   unset($task['uid']);
   $task['id'] = $node->nid;
   $task['assignet_to'] = bt_api_user($task['assignet_to']);
+  bt_api_headers();
   die(json_encode($task));
   bt_api_response(201, BT_API_TASK);
 }
@@ -66,6 +67,7 @@ function task_edit_callback() {
   unset($task['uid']);
   $task['id'] = $node->nid;
   $task['assignet_to'] = bt_api_user($task['assignet_to']);
+  bt_api_headers();
   die(json_encode($task));
   bt_api_response(200, BT_API_TASK);
 }
@@ -130,6 +132,7 @@ function task_delete_callback() {
   $values['id'] = check_plain($params['id']) ?? bt_api_response(406, BT_API_TASK);
   task_is_member_by_task_id($values['id']);
   node_delete($values['id']);
+  bt_api_headers();
   die(json_encode(['status' => 'Success']));
   bt_api_response(200, BT_API_TASK);
 }
@@ -164,6 +167,7 @@ function task_get_all_callback() {
       $task['project'] = project_get_by_id($project_id) ?? bt_api_response(406, BT_API_TASK);
       $tasks[] = $task;
     }
+    bt_api_headers();
     die(json_encode($tasks));
   }
   bt_api_response(406, BT_API_TASK);
@@ -196,6 +200,7 @@ function task_get_callback() {
     $project_id = $node->field_project[LANGUAGE_NONE][0]['target_id'] ?? NULL;
     // Also get project.
     $task['project'] = project_get_by_id($project_id) ?? bt_api_response(406, BT_API_TASK);
+    bt_api_headers();
     die(json_encode($task));
   }
 
