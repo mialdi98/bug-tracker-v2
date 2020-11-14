@@ -15,6 +15,10 @@ define('BT_API_REG', 'bt_api_reg');
 function reg_callback() {
   $values = reg_get_values();
 
+  if (user_load_by_name($values['username']) || user_load_by_mail($values['email'])) {
+    bt_api_response(409, BT_API_REG);
+  }
+
   $account = new stdClass;
   $account->is_new = TRUE;
   $account->name = $values['username'];
