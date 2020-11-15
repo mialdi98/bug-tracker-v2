@@ -40,21 +40,9 @@ function bt_api_menu() {
     'file' => 'auth.inc',
     'file path' => drupal_get_path('module', 'bt_api') . '/includes',
   ];
-  $items['auth_is_logged_in'] = [
-    'page callback' => 'auth_is_logged_in_callback',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'file' => 'auth.inc',
-    'file path' => drupal_get_path('module', 'bt_api') . '/includes',
-  ];
   // INFO.
   $items['user_roles_list'] = [
     'page callback' => 'bt_api_user_roles_list_callback',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-  ];
-  $items['bt_api_user_get'] = [
-    'page callback' => 'bt_api_user_get_callback',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   ];
@@ -137,11 +125,14 @@ function bt_api_menu() {
 /**
  * Respond answer for api.
  */
-function bt_api_response($code, $where = BT_API) {
-  watchdog($where, "repsonse with code {$code}", NULL);
+function bt_api_response($code, $where = BT_API, $return = FALSE, $data = []) {
+  watchdog($where, "Repsonse with code {$code}", NULL);
   http_response_code($code);
   bt_api_headers();
-  exit();
+  if ($return === FALSE) {
+    exit();
+  }
+  die(json_encode($data));
 }
 
 /**
@@ -199,47 +190,14 @@ function bt_api_user_roles_list_callback() {
  */
 function bt_api_user($uid) {
   $user = user_load($uid);
-  if (!empty($user)) {
-    $fields['id'] = $user->uid;
-    $fields['username'] = $user->name;
-    // Roles.
-    $user_roles_name = array_flip(bt_api_get_roles());
-    foreach ($user->roles as $role) {
-      $fields['role'] = isset($user_roles_name[$role]) ? $role : NULL;
-      // $fields['role'][] = $role;
-    }
-    // Well formed array for api.
-    return $fields;
-  }
-  return [];
-}
-
-/**
- * Get user.
- */
-function bt_api_user_get_callback() {
-  // // Check if user is logged in.
-  // module_load_include('pages.inc', 'user');
-  // if (user_is_logged_in()) {
-  //   bt_api_response(200, BT_API);
-  // }
-  // Get user username.
-  $values = [
-    'username' => NULL,
-  ];
-  $params = bt_api_get_data($values, BT_API);
-  $values['username'] = check_plain($params['username']) ?? bt_api_response(406, BT_API);
-
-  $user = user_load_by_name($values['username']);
-  bt_api_user_format($user);
-
-  bt_api_response(406, BT_API);
+  $user_fields = bt_api_user_format($user, FALSE);
+  return isset($user_fields) ? $user_fields : [];
 }
 
 /**
  * Get needed format of user info.
  */
-function bt_api_user_format($user) {
+function bt_api_user_format($user, $die = TRUE) {
   if (!empty($user)) {
     $fields['id'] = $user->uid;
     $fields['username'] = $user->name;
@@ -247,10 +205,13 @@ function bt_api_user_format($user) {
     $user_roles_name = array_flip(bt_api_get_roles());
     foreach ($user->roles as $role) {
       $fields['role'] = isset($user_roles_name[$role]) ? $role : NULL;
-      // $fields['role'][] = $role;
+      // $fields['role'][] = isset($user_roles_name[$role]) ? $role : NULL;
     }
-    // Well formed array for api.
-    die(json_encode($fields));
+    if ($die === TRUE) {
+      // Well formed array for api.
+      bt_api_response(200, BT_API, TRUE, $fields);
+    }
+    return $fields;
   }
 }
 
@@ -260,9 +221,9 @@ function bt_api_user_format($user) {
 function bt_api_user_get() {
   // Get user id.
   $values = [
-    'uid' => NULL,
+    'jwt' => NULL,
   ];
   $params = bt_api_get_data($values, BT_API);
-  $values['uid'] = check_plain($params['uid']) ?? bt_api_response(406, BT_API);
-  return $values['uid'];
+  $user = auth_get_user_by_token(check_plain($params['jwt'])) ?? bt_api_response(406, BT_API);
+  return $user;
 }

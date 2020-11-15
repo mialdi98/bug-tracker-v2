@@ -11,9 +11,9 @@ define('BT_API_PROJECT', 'bt_api_project');
  * Add new project.
  */
 function project_add_callback() {
-  $values = project_get_values($new = TRUE);
   global $user;
-  $user = user_load($values['uid']);
+  $user = bt_api_user_get();
+  $values = project_get_values($new = TRUE);
 
   $node = new stdClass();
   $node->field_assignet_to[LANGUAGE_NONE][0]['target_id'] = $values['assignet_to'];
@@ -32,18 +32,18 @@ function project_add_callback() {
   $project['id'] = $node->nid;
   $project['assignet_to'] = bt_api_user($project['assignet_to']);
   $project['members'] = bt_api_user(reset($project['members']));
-  bt_api_headers();
-  die(json_encode($project));
-  bt_api_response(201, BT_API_PROJECT);
+
+  bt_api_response(201, BT_API_PROJECT, TRUE, $project);
 }
 
 /**
  * Edit project.
  */
 function project_edit_callback() {
-  $values = project_get_values();
   global $user;
-  $user = user_load($values['uid']);
+  $user = bt_api_user_get();
+  $values = project_get_values();
+
   project_is_member_by_project_id($values['id']);
 
   $node = node_load($values['id']);
@@ -59,9 +59,8 @@ function project_edit_callback() {
     $node->field_members[LANGUAGE_NONE][$key]['target_id'] = $member_id;
   }
   node_save($node);
-  bt_api_headers();
-  die(json_encode(['status' => 'Success']));
-  bt_api_response(200, BT_API_PROJECT);
+  $data = ['status' => 'Success'];
+  bt_api_response(200, BT_API_PROJECT, TRUE, $data);
 }
 
 /**
@@ -75,7 +74,6 @@ function project_get_values($new = FALSE) {
       'title' => NULL,
       'assignet_to' => NULL,
       'members' => NULL,
-      'uid' => NULL,
     ];
   }
   else {
@@ -83,7 +81,6 @@ function project_get_values($new = FALSE) {
       'title' => NULL,
       'assignet_to' => NULL,
       'members' => NULL,
-      'uid' => NULL,
     ];
   }
 
@@ -108,28 +105,27 @@ function project_get_values($new = FALSE) {
  * Delete project.
  */
 function project_delete_callback() {
+  global $user;
+  $user = bt_api_user_get();
   // Get project id.
   $values = [
     'id' => NULL,
-    'uid' => NULL,
   ];
   $params = bt_api_get_data($values, BT_API_PROJECT);
   $values['id'] = check_plain($params['id']) ?? bt_api_response(406, BT_API_PROJECT);
-  $values['uid'] = check_plain($params['uid']) ?? bt_api_response(406, BT_API_PROJECT);
 
-  global $user;
-  $user = user_load($values['uid']);
   project_is_member_by_project_id($values['id']);
   node_delete($values['id']);
-  bt_api_headers();
-  die(json_encode(['status' => 'Success']));
-  bt_api_response(200, BT_API_PROJECT);
+  $data = ['status' => 'Success'];
+  bt_api_response(200, BT_API_PROJECT, TRUE, $data);
 }
 
 /**
  * Get project.
  */
 function project_get_callback() {
+  global $user;
+  $user = bt_api_user_get();
   // Get project id.
   $values = [
     'id' => NULL,
@@ -149,8 +145,7 @@ function project_get_callback() {
     foreach ($members_ids as $value) {
       $project['members'][] = bt_api_user($value);
     }
-    bt_api_headers();
-    die(json_encode($project));
+    bt_api_response(201, BT_API_PROJECT, TRUE, $project);
   }
   bt_api_response(406, BT_API_PROJECT);
 }
@@ -175,8 +170,7 @@ function project_get_all_callback() {
       }
       $projects[] = $project;
     }
-    bt_api_headers();
-    die(json_encode($projects));
+    bt_api_response(201, BT_API_PROJECT, TRUE, $projects);
   }
   bt_api_response(406, BT_API_PROJECT);
 }
@@ -208,8 +202,7 @@ function project_get_by_id($id) {
  */
 function project_is_member_by_user_id() {
   global $user;
-  $uid = bt_api_user_get();
-  $user = user_load($uid);
+  $user = bt_api_user_get();
   // Get nids of projects where user is member.
   $query = db_select('field_data_field_members', 'm');
   $query->fields('m', ['entity_id']);
@@ -228,8 +221,7 @@ function project_is_member_by_user_id() {
  */
 function project_is_member_by_project_id($id) {
   global $user;
-  $uid = bt_api_user_get();
-  $user = user_load($uid);
+  $user = bt_api_user_get();
   // Get nids of projects where user is member.
   $query = db_select('field_data_field_members', 'm');
   $query->fields('m', ['entity_id']);

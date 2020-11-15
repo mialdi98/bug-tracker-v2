@@ -36,9 +36,7 @@ function task_add_callback() {
   unset($task['uid']);
   $task['id'] = $node->nid;
   $task['assignet_to'] = bt_api_user($task['assignet_to']);
-  bt_api_headers();
-  die(json_encode($task));
-  bt_api_response(201, BT_API_TASK);
+  bt_api_response(201, BT_API_TASK, TRUE, $task);
 }
 
 /**
@@ -67,9 +65,7 @@ function task_edit_callback() {
   unset($task['uid']);
   $task['id'] = $node->nid;
   $task['assignet_to'] = bt_api_user($task['assignet_to']);
-  bt_api_headers();
-  die(json_encode($task));
-  bt_api_response(200, BT_API_TASK);
+  bt_api_response(200, BT_API_TASK, TRUE, $task);
 }
 
 /**
@@ -124,6 +120,8 @@ function task_get_values($new = FALSE) {
  * Delete task.
  */
 function task_delete_callback() {
+  global $user;
+  $user = bt_api_user_get();
   // Get task id.
   $values = [
     'id' => NULL,
@@ -132,15 +130,16 @@ function task_delete_callback() {
   $values['id'] = check_plain($params['id']) ?? bt_api_response(406, BT_API_TASK);
   task_is_member_by_task_id($values['id']);
   node_delete($values['id']);
-  bt_api_headers();
-  die(json_encode(['status' => 'Success']));
-  bt_api_response(200, BT_API_TASK);
+  $data = ['status' => 'Success'];
+  bt_api_response(200, BT_API_TASK, TRUE, $data);
 }
 
 /**
  * Get all tasks of user.
  */
 function task_get_all_callback() {
+  global $user;
+  $user = bt_api_user_get();
   // Get project id.
   $values = [
     'id' => NULL,
@@ -167,8 +166,7 @@ function task_get_all_callback() {
       $task['project'] = project_get_by_id($project_id) ?? bt_api_response(406, BT_API_TASK);
       $tasks[] = $task;
     }
-    bt_api_headers();
-    die(json_encode($tasks));
+    bt_api_response(200, BT_API_TASK, TRUE, $tasks);
   }
   bt_api_response(406, BT_API_TASK);
 }
@@ -177,6 +175,8 @@ function task_get_all_callback() {
  * Get specific task.
  */
 function task_get_callback() {
+  global $user;
+  $user = bt_api_user_get();
   // Get task id.
   $values = [
     'id' => NULL,
@@ -200,8 +200,7 @@ function task_get_callback() {
     $project_id = $node->field_project[LANGUAGE_NONE][0]['target_id'] ?? NULL;
     // Also get project.
     $task['project'] = project_get_by_id($project_id) ?? bt_api_response(406, BT_API_TASK);
-    bt_api_headers();
-    die(json_encode($task));
+    bt_api_response(200, BT_API_TASK, TRUE, $task);
   }
 
   bt_api_response(406, BT_API_TASK);
@@ -212,8 +211,7 @@ function task_get_callback() {
  */
 function task_is_member_by_task_id($id) {
   global $user;
-  $uid = bt_api_user_get();
-  $user = user_load($uid);
+  $user = bt_api_user_get();
   // Check if user have permissions to this task.
   $query = db_select('field_data_field_members', 'm');
   $query->leftJoin('field_data_field_project', 'p', 'm.entity_id = p.field_project_target_id');
@@ -234,8 +232,7 @@ function task_is_member_by_task_id($id) {
  */
 function task_is_member_by_project_id($id, $new = FALSE) {
   global $user;
-  $uid = bt_api_user_get();
-  $user = user_load($uid);
+  $user = bt_api_user_get();
   // Check if user have permissions to this task.
   $query = db_select('field_data_field_members', 'm');
   if ($new === FALSE) {
